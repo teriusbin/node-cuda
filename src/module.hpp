@@ -10,10 +10,10 @@ namespace NodeCuda {
     public:
       static void Initialize(Handle<Object> target);
       static Handle<Value> GetFunction(const Arguments& args);
-
+      
     protected:
       static Persistent<FunctionTemplate> constructor_template;
-
+      static Handle<Value> TextureAlloc(const Arguments& args);
       static Handle<Value> Load(const Arguments& args);
 
       Module() : ObjectWrap(), m_module(0) {}

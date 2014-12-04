@@ -1,0 +1,92 @@
+	.version 1.4
+	.target sm_10, map_f64_to_f32
+	// compiled with /usr/local/cuda-6.0/open64/lib//be
+	// nvopencc 4.1 built on 2014-03-13
+
+	//-----------------------------------------------------------
+	// Compiling /tmp/tmpxft_000048fd_00000000-9_test.cpp3.i (/tmp/ccBI#.RawVSw)
+	//-----------------------------------------------------------
+
+	//-----------------------------------------------------------
+	// Options:
+	//-----------------------------------------------------------
+	//  Target:ptx, ISA:sm_10, Endian:little, Pointer Size:32
+	//  -O3	(Optimization level)
+	//  -g0	(Debug level)
+	//  -m2	(Report advisories)
+	//-----------------------------------------------------------
+
+	.file	1	"<command-line>"
+	.file	2	"/tmp/tmpxft_000048fd_00000000-8_test.cudafe2.gpu"
+	.file	3	"/usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h"
+	.file	4	"/usr/local/cuda/bin/../targets/i386-linux/include/crt/device_runtime.h"
+	.file	5	"/usr/local/cuda/bin/../targets/i386-linux/include/host_defines.h"
+	.file	6	"/usr/local/cuda/bin/../targets/i386-linux/include/builtin_types.h"
+	.file	7	"/usr/local/cuda/bin/../targets/i386-linux/include/device_types.h"
+	.file	8	"/usr/local/cuda/bin/../targets/i386-linux/include/driver_types.h"
+	.file	9	"/usr/local/cuda/bin/../targets/i386-linux/include/surface_types.h"
+	.file	10	"/usr/local/cuda/bin/../targets/i386-linux/include/texture_types.h"
+	.file	11	"/usr/local/cuda/bin/../targets/i386-linux/include/vector_types.h"
+	.file	12	"/usr/local/cuda/bin/../targets/i386-linux/include/device_launch_parameters.h"
+	.file	13	"/usr/local/cuda/bin/../targets/i386-linux/include/crt/storage_class.h"
+	.file	14	"test.cu"
+	.file	15	"/usr/local/cuda/bin/../targets/i386-linux/include/common_functions.h"
+	.file	16	"/usr/local/cuda/bin/../targets/i386-linux/include/math_functions.h"
+	.file	17	"/usr/local/cuda/bin/../targets/i386-linux/include/math_constants.h"
+	.file	18	"/usr/local/cuda/bin/../targets/i386-linux/include/device_functions.h"
+	.file	19	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_11_atomic_functions.h"
+	.file	20	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_12_atomic_functions.h"
+	.file	21	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_13_double_functions.h"
+	.file	22	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_20_atomic_functions.h"
+	.file	23	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_32_atomic_functions.h"
+	.file	24	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_35_atomic_functions.h"
+	.file	25	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_20_intrinsics.h"
+	.file	26	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_30_intrinsics.h"
+	.file	27	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_32_intrinsics.h"
+	.file	28	"/usr/local/cuda/bin/../targets/i386-linux/include/sm_35_intrinsics.h"
+	.file	29	"/usr/local/cuda/bin/../targets/i386-linux/include/surface_functions.h"
+	.file	30	"/usr/local/cuda/bin/../targets/i386-linux/include/texture_fetch_functions.h"
+	.file	31	"/usr/local/cuda/bin/../targets/i386-linux/include/texture_indirect_functions.h"
+	.file	32	"/usr/local/cuda/bin/../targets/i386-linux/include/surface_indirect_functions.h"
+	.file	33	"/usr/local/cuda/bin/../targets/i386-linux/include/math_functions_dbl_ptx1.h"
+
+	.tex .u32 texture_float_1D;
+
+	.entry helloWorld (
+		.param .u32 __cudaparm_helloWorld_data1,
+		.param .u32 __cudaparm_helloWorld_data2,
+		.param .u32 __cudaparm_helloWorld_data3,
+		.param .u32 __cudaparm_helloWorld_width)
+	{
+	.reg .u32 %r<5>;
+	.reg .f32 %f<15>;
+	.reg .pred %p<3>;
+	.loc	14	11	0
+$LDWbegin_helloWorld:
+	ld.param.u32 	%r1, [__cudaparm_helloWorld_data3];
+	mov.s32 	%r2, 0;
+$Lt_0_1794:
+ //<loop> Loop body line 11, nesting depth: 1, iterations: 256
+	.loc	14	36	0
+	cvt.rn.f32.s32 	%f1, %r2;
+	mov.f32 	%f2, %f1;
+	mov.f32 	%f3, 0f00000000;     	// 0
+	mov.f32 	%f4, %f3;
+	mov.f32 	%f5, 0f00000000;     	// 0
+	mov.f32 	%f6, %f5;
+	mov.f32 	%f7, 0f00000000;     	// 0
+	mov.f32 	%f8, %f7;
+	tex.1d.v4.f32.f32 {%f9,%f10,%f11,%f12},[texture_float_1D,{%f2,%f4,%f6,%f8}];
+	mov.f32 	%f13, %f9;
+	.loc	14	37	0
+	st.global.f32 	[%r1+0], %f13;
+	add.s32 	%r2, %r2, 1;
+	add.u32 	%r1, %r1, 4;
+	mov.u32 	%r3, 256;
+	setp.ne.s32 	%p1, %r2, %r3;
+	@%p1 bra 	$Lt_0_1794;
+	.loc	14	41	0
+	exit;
+$LDWend_helloWorld:
+	} // helloWorld
+

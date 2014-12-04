@@ -10,7 +10,7 @@ namespace NodeCuda {
   class Mem : public ObjectWrap {
     public:
       static void Initialize(Handle<Object> target);
-
+       static Handle<Value> GetDevicePtr(Local<String> property, const AccessorInfo &info);
     protected:
       static Persistent<FunctionTemplate> constructor_template;
 
@@ -19,8 +19,7 @@ namespace NodeCuda {
       static Handle<Value> Free(const Arguments& args);
       static Handle<Value> CopyHtoD(const Arguments& args);
       static Handle<Value> CopyDtoH(const Arguments& args);
-
-      static Handle<Value> GetDevicePtr(Local<String> property, const AccessorInfo &info);
+     
 
       Mem() : ObjectWrap(), m_devicePtr(0) {}
 

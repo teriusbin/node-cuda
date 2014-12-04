@@ -3,6 +3,7 @@
 #include <cstdio>
 #include "function.hpp"
 #include "mem.hpp"
+#include <stdio.h>
 
 using namespace NodeCuda;
 
@@ -44,21 +45,51 @@ Handle<Value> NodeCuda::Function::LaunchKernel(const Arguments& args) {
   unsigned int blockDimY = blockDim->Get(1)->Uint32Value();
   unsigned int blockDimZ = blockDim->Get(2)->Uint32Value();
 
+/*
+  int offset = 0;
+  char argBuffer[256];
+  
   Local<Object> buf = args[2]->ToObject();
-  char *pbuffer = Buffer::Data(buf);
-  size_t bufferSize = Buffer::Length(buf);
+  *((char *)&argBuffer[offset]) = buf;
+  offset += sizeof(buf);
+  
+  Local<Object> buf2 = args[3]->ToObject();
+  *((char *)&argBuffer[offset]) = buf2;
+  offset += sizeof(buf2);
+ 
+  Local<Object> buf3 = args[4]->ToObject();      
+  *((char *)&argBuffer[offset]) = buf3;
+  offset += sizeof(buf3);
+   
+  
+  void *kernel_launch_config[3] =
+  {
+        CU_LAUNCH_PARAM_BUFFER_POINTER, argBuffer,
+        CU_LAUNCH_PARAM_BUFFER_SIZE,    &offset,
+        CU_LAUNCH_PARAM_END
+   };*/
 
+   Local<Object> buf = args[2]->ToObject();
+   char *pbuffer = Buffer::Data(buf);
+   size_t bufferSize = Buffer::Length(buf);
+  
   void *cuExtra[] = {
     CU_LAUNCH_PARAM_BUFFER_POINTER, pbuffer,
     CU_LAUNCH_PARAM_BUFFER_SIZE,    &bufferSize,
     CU_LAUNCH_PARAM_END
   };
 
+  //void *kernelvalue[3] = { &pbuffer3, &pbuffer2, &pbuffer };
+                           
   CUresult error = cuLaunchKernel(pfunction->m_function,
       gridDimX, gridDimY, gridDimZ,
       blockDimX, blockDimY, blockDimZ,
-      0, 0, NULL, cuExtra);
+	  NULL, 
+      NULL, 
+      NULL,
+	  cuExtra);
 
   return scope.Close(Number::New(error));
 }
 
+ 

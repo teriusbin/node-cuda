@@ -1,6 +1,8 @@
 #include <cstring>
 #include <node_buffer.h>
 #include "mem.hpp"
+#include "module.hpp"
+#include <stdio.h>
 
 using namespace NodeCuda;
 
@@ -17,7 +19,7 @@ void Mem::Initialize(Handle<Object> target) {
   // Mem objects can only be created by allocation functions
   NODE_SET_METHOD(target, "memAlloc", Mem::Alloc);
   NODE_SET_METHOD(target, "memAllocPitch", Mem::AllocPitch);
-
+ 
   constructor_template->InstanceTemplate()->SetAccessor(String::New("devicePtr"), Mem::GetDevicePtr);
 
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "free", Mem::Free);
@@ -33,6 +35,7 @@ Handle<Value> Mem::New(const Arguments& args) {
 
   return args.This();
 }
+
 
 Handle<Value> Mem::Alloc(const Arguments& args) {
   HandleScope scope;
@@ -102,16 +105,17 @@ Handle<Value> Mem::CopyDtoH(const Arguments& args) {
   Local<Object> buf = args[0]->ToObject();
   char *phost = Buffer::Data(buf);
   size_t bytes = Buffer::Length(buf);
-
+  
+ 
   bool async = args.Length() >= 2 && args[1]->IsTrue();
-
+  
   CUresult error;
   if (async) {
     error = cuMemcpyDtoHAsync(phost, pmem->m_devicePtr, bytes, 0);
   } else {
     error = cuMemcpyDtoH(phost, pmem->m_devicePtr, bytes);
   }
-
+  
   return scope.Close(Number::New(error));
 }
 

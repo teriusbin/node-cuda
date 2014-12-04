@@ -11,7 +11,7 @@ var typeByteSize = {
   "Int32": 4,
   "Float32": 4,
   "Float64": 8,
-  "DevicePtr": 8
+  "DevicePtr": 4
 };
 
 var typeAlignment = {
@@ -23,7 +23,7 @@ var typeAlignment = {
   "Int32": 4,
   "Float32": 4,
   "Float64": 8,
-  "DevicePtr": 8
+  "DevicePtr": 4
 };
 
 var typeBufferFunc = {
@@ -46,15 +46,16 @@ module.exports.prepareArguments = function (args) {
 
   for (var i in args) {
     var type = args[i].type;
-
+    
     paramBufferSize = alignUp(paramBufferSize, typeAlignment[type]);
 
-    if (typeof(typeByteSize[type]) != "number")
-      throw "Invalid type given";
+		if (typeof(typeByteSize[type]) != "number")
+				throw "Invalid type given";
 
-    paramBufferSize += typeByteSize[type];
-  }
-
+	paramBufferSize += typeByteSize[type];
+    
+   }
+ 
   var paramBuffer = new Buffer(paramBufferSize);
 
   var offset = 0;
@@ -71,17 +72,19 @@ module.exports.prepareArguments = function (args) {
 
     offset += typeByteSize[type];
   }
-
+  
   return paramBuffer;
 }
 
 module.exports.launch = function () {
+  
   var func = arguments[0];
   var gridDim = arguments[1];
   var blockDim = arguments[2];
   var args = arguments[3];
 
   args = module.exports.prepareArguments(args);
-
+  
   return func.launchKernel(gridDim, blockDim, args);
+  
 }
