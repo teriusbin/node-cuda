@@ -36,11 +36,11 @@ var error = cuMem2.copyHtoD(buf2);
 //console.log("-------------------------------------------------------------");
 
 // ~ cumem3
-var cuMem3 = cu.memAlloc(256*4);
+var cuMem3 = cu.memAlloc(256*4*4);
 //console.log("cuMem Allocated 65536*4 bytes:", cuMem3);
 
-var buf3 = new Buffer(256*4);
-for (var i = 0; i < 256; i++) {
+var buf3 = new Buffer(256*4*4);
+for (var i = 0; i < 256*4; i++) {
     buf3.writeInt32LE(0, i*4);
 }
 var error = cuMem3.copyHtoD(buf3);
@@ -87,7 +87,7 @@ console.log("Launched kernel:", error);
 var error = cuMem3.copyDtoH(buf3, true);
 //console.log("cuda time ", (new Date().getTime() - time)/1000);
 console.log("cuda" ,buf3);
-console.log("float", buf3.readFloatLE(119*4));
+console.log("float", buf3.readFloatLE(0*4*4));
 
 console.log('----------------------------------------');
 //console.log("--------------------------------cuda buffer");

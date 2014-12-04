@@ -185,42 +185,50 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    
   /* float  array 256  */
   
-    float *input_float_1D = (float *)malloc(sizeof(float)*256);
+    float4 *input_float_1D = (float4 *)malloc(sizeof(float4)*256);
     for(int i=0; i<=80; i++){    //alpha
-		 input_float_1D[i] = 0.0f;
+		 input_float_1D[i].x = 1.0f;
+		 input_float_1D[i].y = 1.0f;
+		 input_float_1D[i].z = 1.0f;
+		 input_float_1D[i].w = 1.0f;
 	}
 	for(int i=80+1; i<=120; i++){
-		input_float_1D[i] = (1.0f / (120.0f-80.0f)) * ( i - 80.0f);
+		input_float_1D[i].x = (1.0f / (120.0f-80.0f)) * ( i - 80.0f);
+		input_float_1D[i].y = (1.0f / (120.0f-80.0f)) * ( i - 80.0f);
+		input_float_1D[i].z = (1.0f / (120.0f-80.0f)) * ( i - 80.0f);
+		input_float_1D[i].w = (1.0f / (120.0f-80.0f)) * ( i - 80.0f);
 		
 	}
 	for(int i=120+1; i<256; i++){
-		input_float_1D[i] =1.0f;
+		input_float_1D[i].x =1.0f;
+		input_float_1D[i].y =1.0f;
+		input_float_1D[i].z =1.0f;
+		input_float_1D[i].w =1.0f;
 		
 	}
 	for(int i=0; i<256; i++){
-	   printf("%d    %f \n",i, input_float_1D[i]);
+	   printf("%d  %f %f  %f %f \n",i, input_float_1D[i].x,input_float_1D[i].y,input_float_1D[i].z,input_float_1D[i].w);
    }
    
      // Create the array on the device
    CUarray array;
    CUDA_ARRAY_DESCRIPTOR ad;
-   ad.Format = CU_AD_FORMAT_FLOAT ;
+   ad.Format = CU_AD_FORMAT_FLOAT;
    ad.Width = 256;
    ad.Height = 1;
-   ad.NumChannels = 1;
+   ad.NumChannels = 4;
    CUresult error12 = cuArrayCreate(&array, &ad);
    
    // Copy the host input to the array
-   cuMemcpyHtoA(array,0,input_float_1D,256*sizeof(float));
+   cuMemcpyHtoA(array,0,input_float_1D,256*sizeof(float4));
    
    CUtexref texref;
    CUresult error14 =cuModuleGetTexRef(&texref, pmodule->m_module, "texture_float_1D");
    CUresult error17 =cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_POINT );
-   CUresult error16 =cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_WRAP );
-   CUresult error18 =cuTexRefSetFlags(texref, CU_TRSF_READ_AS_INTEGER);
-   CUresult error19 =cuTexRefSetFormat(texref, CU_AD_FORMAT_FLOAT, 1);
+   CUresult error16 =cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_CLAMP );
+   CUresult error18 =cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES);
+   CUresult error19 =cuTexRefSetFormat(texref, CU_AD_FORMAT_FLOAT, 4);
    CUresult error15 =cuTexRefSetArray(texref, array, CU_TRSA_OVERRIDE_FORMAT);
-   
    
    
     /* integer  array 256  */

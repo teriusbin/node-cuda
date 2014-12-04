@@ -6,9 +6,9 @@
 //texture<int, 1, cudaReadModeElementType> transferTex; 
 
 
-texture<float,  1, cudaReadModeElementType> texture_float_1D;
+texture<float4,  1, cudaReadModeElementType> texture_float_1D;
 extern "C" {
-__global__ void helloWorld(unsigned int *data1, unsigned int *data2, float *data3, unsigned int width) {
+__global__ void helloWorld(unsigned int *data1, unsigned int *data2, float4 *data3, unsigned int width) {
 	/*
 		int tid, tx, ty;
 		tx = blockDim.x*blockIdx.x + threadIdx.x;
@@ -32,11 +32,11 @@ __global__ void helloWorld(unsigned int *data1, unsigned int *data2, float *data
 		*/
 		
 		
-		for(int i = 0; i<256; i++){
-			float result = tex1D(texture_float_1D,i);
-			data3[i] = result;
+		//for(float i = 0; i<=1.0f; i+=1.0f/256.0f){
+			float4 result = tex1D(texture_float_1D,0.31640625);
+			data3[0] = result;
 		
-		}
+		//}
        
 	}
 }
