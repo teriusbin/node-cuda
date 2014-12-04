@@ -1,4 +1,1 @@
 build
-.lock-wscript
-.waf*
-*.node
