@@ -44,7 +44,7 @@ var error = cuMem.copyHtoD(buf);
 console.log("Copied buffer to device:", error);
 
 //cuModuleLoad
-var cuModule = cu.moduleLoad("test/test.cubin");
+var cuModule = cu.moduleLoad("test.ptx");
 console.log("Loaded module:", cuModule);
 
 //cuModuleGetFunction
@@ -61,6 +61,7 @@ console.log("Launched kernel:", error);
 
 // cuMemcpyDtoH
 var error = cuMem.copyDtoH(buf, true);
+console.log("Device to host", buf);
 console.log("Copied buffer to host:", error);
 
 //cuCtxSynchronize
