@@ -24,7 +24,8 @@ Release/obj.target/cuda/src/module.o: ../src/module.cpp ../src/module.hpp \
  /usr/local/cuda-6.0/include/cuda_runtime_api.h \
  /usr/local/cuda-6.0/include/cuda_device_runtime_api.h \
  /usr/local/cuda-6.0/include/driver_functions.h \
- /usr/local/cuda-6.0/include/vector_functions.h
+ /usr/local/cuda-6.0/include/vector_functions.h \
+ /usr/local/cuda-6.0/include/cuda_runtime_api.h
 ../src/module.cpp:
 ../src/module.hpp:
 /usr/local/cuda-6.0/include/cuda.h:
@@ -54,3 +55,4 @@ Release/obj.target/cuda/src/module.o: ../src/module.cpp ../src/module.hpp \
 /usr/local/cuda-6.0/include/cuda_device_runtime_api.h:
 /usr/local/cuda-6.0/include/driver_functions.h:
 /usr/local/cuda-6.0/include/vector_functions.h:
+/usr/local/cuda-6.0/include/cuda_runtime_api.h:
