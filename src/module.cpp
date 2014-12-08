@@ -54,107 +54,108 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    Module *pmodule = ObjectWrap::Unwrap<Module>(args.This());
    
    /*temp*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   /*v8::String::Utf8Value param1(args[0]->ToString());
+   v8::String::Utf8Value param1(args[0]->ToString());
    char *filename = *param1;
    size_t volumeSize = args[1]->Uint32Value();
    
-   FILE *fp = fopen("/home/russa/git2/node-cuda/src/Bighead.den", "rb");
-
-   unsigned char *data = (unsigned char *)malloc(volumeSize);
-   size_t read = fread(data, 1, volumeSize, fp);
+   unsigned int width=256;
+   unsigned int height=256;
+   unsigned int depth=225;
+    
+   size_t size = width * height *depth * sizeof(unsigned char);  
+   FILE *fp = fopen("/home/russa/git2/node-cuda/src/Bighead.den", "rb"); 
+   void *h_data = (void *) malloc(size);
+   
+   size_t read = fread(h_data, 1, size, fp);
    fclose(fp);
 
    printf("\n~~~~Read '%s', %d bytes\n", filename, read);
     
-   CUarray d_volumeArray;
-   CUDA_ARRAY3D_DESCRIPTOR allocateArray;
-   allocateArray.Width = 256;
-   allocateArray.Height = 256;
-   allocateArray.Depth = 225;
-   allocateArray.Format = CU_AD_FORMAT_UNSIGNED_INT8;
-   allocateArray.NumChannels = 1;
-   allocateArray.Flags = 1;     
-   
-   CUresult error2 = cuArray3DCreate(&d_volumeArray, &allocateArray);    
-  
-   CUDA_MEMCPY3D copy;
-   memset(&copy, 0, sizeof(copy));
-   copy.srcMemoryType = CU_MEMORYTYPE_HOST;
-   copy.srcHost = data;
-   copy.srcPitch = 256;
-   copy.Height = 256;
-   copy.dstMemoryType = CU_MEMORYTYPE_ARRAY;
-  
-   copy.dstArray = d_volumeArray;
-   copy.dstPitch = 256;
-   copy.dstHeight = 256;
-   
-   copy.WidthInBytes = 256;
-   copy.Height = 256;
-   copy.Depth = 225;
-  
-   CUresult error3 =  cuMemcpy3D(&copy);
-    
-   // Copy the host input to the array
-
-   CUtexref tex;
-   CUresult error4 = cuModuleGetTexRef(&tex, pmodule->m_module , "tex");
-   CUresult error5 = cuTexRefSetFilterMode(tex,CU_TR_FILTER_MODE_POINT);
-   CUresult error6 = cuTexRefSetAddressMode(tex, 0, CU_TR_ADDRESS_MODE_CLAMP);
-   CUresult error7 = cuTexRefSetAddressMode(tex, 1, CU_TR_ADDRESS_MODE_CLAMP);
-   CUresult error8 = cuTexRefSetFormat(tex, CU_AD_FORMAT_UNSIGNED_INT8, 1);
-   CUresult error9 = cuTexRefSetFlags(tex, CU_TRSF_NORMALIZED_COORDINATES);
-   CUresult error10 = cuTexRefSetArray(tex, d_volumeArray, CU_TRSA_OVERRIDE_FORMAT); 
-   
-   result->Set(String::New("volumeSize"), Integer::NewFromUnsigned(volumeSize));
-   result->Set(String::New("cuArray3DCreate error"), Integer::New(error2));
-   result->Set(String::New("cuMemcpy3D error"), Integer::New(error3));
-   result->Set(String::New("cuModuleGetTexRef error"), Integer::New(error4));
-   result->Set(String::New("cuTexRefSetArray error"), Integer::New(error5));
-   result->Set(String::New("cuTexRefSetAddressMode error"), Integer::New(error6));
-   result->Set(String::New("cuTexRefSetAddressMode error"), Integer::New(error7));
-   result->Set(String::New("cuTexRefSetAddressMode error"), Integer::New(error8));
-   result->Set(String::New("cuTexRefSetFilterMode error"), Integer::New(error9));
-   result->Set(String::New("cuTexRefSetFlags error"), Integer::New(error10));
-  
-   */
-  
-    /*3d float array size(8) texture *//////////////////////////////////////////////////////////////////////////////////////////////
-    unsigned int width=2;
-	unsigned int height=2;
-	unsigned int depth=2;
-    float *h_data = (float *) malloc(width*height*depth*sizeof(float));
-    for(int loop=0; loop<width*height*depth; loop++){
-		h_data[loop]=(float)(loop);
-	}
-    size_t size = width * height *depth * sizeof(float); 
-   
-	for(int i=0; i<2*2*2; i++){
-	   printf("%d  %f\n",i, h_data[i]);
-   }
-   
-    CUarray cu_array;
-    CUDA_ARRAY3D_DESCRIPTOR desc;
-    desc.Format = CU_AD_FORMAT_FLOAT;
-    desc.NumChannels = 1;
-    desc.Width = width;
-    desc.Height = height;
-	desc.Depth=depth;
-	desc.Flags=0;
+   CUarray cu_array;
+   CUDA_ARRAY3D_DESCRIPTOR desc;
+   desc.Format = CU_AD_FORMAT_UNSIGNED_INT8;
+   desc.NumChannels = 1;
+   desc.Width = width;
+   desc.Height = height;
+   desc.Depth = depth;
+   desc.Flags=0;
    CUresult error3 =cuArray3DCreate(&cu_array, &desc);
    
    CUDA_MEMCPY3D copyParam;
-    memset(&copyParam, 0, sizeof(copyParam));
-	copyParam.srcMemoryType = CU_MEMORYTYPE_HOST;
-	copyParam.srcHost = h_data;
-	copyParam.srcPitch = width * sizeof(float);
-	copyParam.srcHeight = height;
-	copyParam.dstMemoryType = CU_MEMORYTYPE_ARRAY;
-    copyParam.dstArray = cu_array;
-	copyParam.dstHeight=height;
-	copyParam.WidthInBytes = width * sizeof(float);
-    copyParam.Height = height;
-	copyParam.Depth = depth;
+   memset(&copyParam, 0, sizeof(copyParam));
+   copyParam.srcMemoryType = CU_MEMORYTYPE_HOST;
+   copyParam.srcHost = h_data;
+   copyParam.srcPitch = width * sizeof(unsigned char);
+   copyParam.srcHeight = height;
+   copyParam.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+   copyParam.dstArray = cu_array;
+   copyParam.dstHeight=height;
+   copyParam.WidthInBytes = width * sizeof(unsigned char);
+   copyParam.Height = height;
+   copyParam.Depth = depth;
+    
+   CUresult error4 = cuMemcpy3D(&copyParam);
+   
+   CUtexref cu_texref;
+   CUresult error5 = cuModuleGetTexRef(&cu_texref, pmodule->m_module, "tex");
+   CUresult error6 = cuTexRefSetArray(cu_texref, cu_array, CU_TRSA_OVERRIDE_FORMAT);
+   CUresult error7 = cuTexRefSetAddressMode(cu_texref, 0, CU_TR_ADDRESS_MODE_CLAMP);
+   CUresult error8 = cuTexRefSetAddressMode(cu_texref, 1, CU_TR_ADDRESS_MODE_CLAMP);
+   CUresult error9 = cuTexRefSetAddressMode(cu_texref, 2, CU_TR_ADDRESS_MODE_CLAMP);
+   CUresult error10 =cuTexRefSetFilterMode(cu_texref, CU_TR_FILTER_MODE_POINT);
+   CUresult error11 =cuTexRefSetFlags(cu_texref, CU_TRSF_READ_AS_INTEGER);
+   CUresult error12 =cuTexRefSetFormat(cu_texref, CU_AD_FORMAT_UNSIGNED_INT8, 1);
+   
+   result->Set(String::New("cuArray3DCreate error"), Integer::New(error3));
+   result->Set(String::New("cuMemcpy3D error"), Integer::New(error4));
+   result->Set(String::New("cuModuleGetTexRef error"), Integer::New(error5));
+   result->Set(String::New("cuTexRefSetArray error"), Integer::New(error6));
+   result->Set(String::New("cuTexRefSetAddressMode1 error"), Integer::New(error7));
+   result->Set(String::New("cuTexRefSetAddressMode2 error"), Integer::New(error8));
+   result->Set(String::New("cuTexRefSetAddressMode3 error"), Integer::New(error9));
+   result->Set(String::New("cuTexRefSetFilterMode error"), Integer::New(error10));
+   result->Set(String::New("cuTexRefSetFlags error"), Integer::New(error11));
+   result->Set(String::New("cuTexRefSetFormat error"), Integer::New(error12));
+  
+   
+  
+    /*3d float array size(8) texture *//////////////////////////////////////////////////////////////////////////////////////////////
+    /*
+   unsigned int width=2;
+   unsigned int height=2;
+   unsigned int depth=2;
+   float *h_data = (float *) malloc(width*height*depth*sizeof(float));
+   for(int loop=0; loop<width*height*depth; loop++){
+		h_data[loop]=(float)(loop);
+	}
+   size_t size = width * height *depth * sizeof(float); 
+   
+   for(int i=0; i<2*2*2; i++){
+	   printf("%d  %f\n",i, h_data[i]);
+   }
+   
+   CUarray cu_array;
+   CUDA_ARRAY3D_DESCRIPTOR desc;
+   desc.Format = CU_AD_FORMAT_FLOAT;
+   desc.NumChannels = 1;
+   desc.Width = width;
+   desc.Height = height;
+   desc.Depth=depth;
+   desc.Flags=0;
+   CUresult error3 =cuArray3DCreate(&cu_array, &desc);
+   
+   CUDA_MEMCPY3D copyParam;
+   memset(&copyParam, 0, sizeof(copyParam));
+   copyParam.srcMemoryType = CU_MEMORYTYPE_HOST;
+   copyParam.srcHost = h_data;
+   copyParam.srcPitch = width * sizeof(float);
+   copyParam.srcHeight = height;
+   copyParam.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+   copyParam.dstArray = cu_array;
+   copyParam.dstHeight=height;
+   copyParam.WidthInBytes = width * sizeof(float);
+   copyParam.Height = height;
+   copyParam.Depth = depth;
 	
   
    CUresult error4 = cuMemcpy3D(&copyParam);
@@ -170,18 +171,19 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    CUresult error12 =cuTexRefSetFormat(cu_texref, CU_AD_FORMAT_FLOAT, 1);
     
 
-	result->Set(String::New("cuArray3DCreate error"), Integer::New(error3));
-	result->Set(String::New("cuMemcpy3D error"), Integer::New(error4));
-	result->Set(String::New("cuModuleGetTexRef error"), Integer::New(error5));
-    result->Set(String::New("cuTexRefSetArray error"), Integer::New(error6));
-    result->Set(String::New("cuTexRefSetAddressMode1 error"), Integer::New(error7));
-    result->Set(String::New("cuTexRefSetAddressMode2 error"), Integer::New(error8));
-    result->Set(String::New("cuTexRefSetAddressMode3 error"), Integer::New(error9));
-    result->Set(String::New("cuTexRefSetFilterMode error"), Integer::New(error10));
-    result->Set(String::New("cuTexRefSetFlags error"), Integer::New(error11));
-    result->Set(String::New("cuTexRefSetFormat error"), Integer::New(error12));
-    //setTextureFilterMode();
-  
+   result->Set(String::New("cuArray3DCreate error"), Integer::New(error3));
+   result->Set(String::New("cuMemcpy3D error"), Integer::New(error4));
+   result->Set(String::New("cuModuleGetTexRef error"), Integer::New(error5));
+   result->Set(String::New("cuTexRefSetArray error"), Integer::New(error6));
+   result->Set(String::New("cuTexRefSetAddressMode1 error"), Integer::New(error7));
+   result->Set(String::New("cuTexRefSetAddressMode2 error"), Integer::New(error8));
+   result->Set(String::New("cuTexRefSetAddressMode3 error"), Integer::New(error9));
+   result->Set(String::New("cuTexRefSetFilterMode error"), Integer::New(error10));
+   result->Set(String::New("cuTexRefSetFlags error"), Integer::New(error11));
+   result->Set(String::New("cuTexRefSetFormat error"), Integer::New(error12));
+   //setTextureFilterMode();
+   */
+ 
   /* float4  array 256  *//////////////////////////////////////////////////////////////////////////////////////////////////
    /*
     float4 *input_float_1D = (float4 *)malloc(sizeof(float4)*256);

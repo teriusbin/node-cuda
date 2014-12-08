@@ -18,7 +18,8 @@ for (var i = 0; i < 256*4; i++) {
 var error = cuMem3.copyHtoD(buf3);
 */
 
-/*3D integer array*/ 
+/*3D float array*/ 
+/*
 var cuMem3 = cu.memAlloc(2*2*2*4);
 
 var buf3 = new Buffer(2*2*2*4);
@@ -26,7 +27,16 @@ for (var i = 0; i < 2*2*2; i++) {
     buf3.writeFloatLE(0, i*4);
 }
 var error = cuMem3.copyHtoD(buf3);
+*/
 
+/*3D volume array*/ 
+var cuMem3 = cu.memAlloc(256*256*225*1);
+
+var buf3 = new Buffer(256*256*225*1);
+for (var i = 0; i < 256*256*225; i++) {
+    buf3.writeUInt8(0, i*1);
+}
+var error = cuMem3.copyHtoD(buf3);
 
 //cuModuleLoad
 var cuModule = cu.moduleLoad("test.ptx");
@@ -35,7 +45,7 @@ console.log("module", cuModule);
 
 var filename='Bighead.den';
 var volumeSize=256*256*225;
-var error = cuModule.memTextureAlloc();
+var error = cuModule.memTextureAlloc("Bighead.den",256*256*225);
 console.log("file read", error);
 
 
@@ -64,12 +74,15 @@ var error = cuMem3.copyDtoH(buf3, true);
 console.log("cuda" ,buf3);
 
 /*float 3d integer*/ 
-console.log("float", buf3.readFloatLE(3*4));
+//console.log("float", buf3.readFloatLE(3*4));
 
 /*float4 OTF table*/ 
 /*
 console.log("float", buf3.readFloatLE(0*4*4));
 */
+
+/*uint 3d volume*/ 
+console.log("uint", buf3.readUInt8(108511));
 console.log('----------------------------------------');
 
 var error = cuCtx.synchronize(function(error) {
