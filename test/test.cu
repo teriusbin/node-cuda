@@ -5,6 +5,13 @@
 
 texture<float4,  1, cudaReadModeElementType> texture_float_1D;
 texture<unsigned char, 3, cudaReadModeElementType> tex;
+
+__device__unsigned char mul(unsigned char variable)
+{
+ 
+    return variable - 1;
+}
+
 extern "C" {
 __global__ void helloWorld(unsigned char *data3, unsigned int width) {
 	    
@@ -64,7 +71,7 @@ __global__ void helloWorld(unsigned char *data3, unsigned int width) {
 		for(loop=0; loop<225; loop++){
 			z = loop;
 			unsigned char result = tex3D(tex, x, y, z);
-			data3[z*256*256 + y*256 + x]=result; 
+			data3[z*256*256 + y*256 + x]=mul(result); 
 		}
 		
 		

@@ -4,7 +4,7 @@
 	// nvopencc 4.1 built on 2014-03-13
 
 	//-----------------------------------------------------------
-	// Compiling /tmp/tmpxft_00000c27_00000000-9_test.cpp3.i (/tmp/ccBI#.2uGiZh)
+	// Compiling /tmp/tmpxft_00000d82_00000000-9_test.cpp3.i (/tmp/ccBI#.5EqNY2)
 	//-----------------------------------------------------------
 
 	//-----------------------------------------------------------
@@ -17,7 +17,7 @@
 	//-----------------------------------------------------------
 
 	.file	1	"<command-line>"
-	.file	2	"/tmp/tmpxft_00000c27_00000000-8_test.cudafe2.gpu"
+	.file	2	"/tmp/tmpxft_00000d82_00000000-8_test.cudafe2.gpu"
 	.file	3	"/usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h"
 	.file	4	"/usr/local/cuda/bin/../targets/i386-linux/include/crt/device_runtime.h"
 	.file	5	"/usr/local/cuda/bin/../targets/i386-linux/include/host_defines.h"
@@ -57,10 +57,10 @@
 		.param .u32 __cudaparm_helloWorld_width)
 	{
 	.reg .u16 %rh<6>;
-	.reg .u32 %r<20>;
+	.reg .u32 %r<21>;
 	.reg .f32 %f<10>;
 	.reg .pred %p<3>;
-	.loc	14	9	0
+	.loc	14	17	0
 $LDWbegin_helloWorld:
 	mov.u16 	%rh1, %ctaid.x;
 	mov.u16 	%rh2, %ntid.x;
@@ -81,8 +81,8 @@ $LDWbegin_helloWorld:
 	add.s32 	%r11, %r8, %r10;
 	mov.s32 	%r12, 0;
 $Lt_0_1794:
- //<loop> Loop body line 9, nesting depth: 1, iterations: 225
-	.loc	14	66	0
+ //<loop> Loop body line 17, nesting depth: 1, iterations: 225
+	.loc	14	74	0
 	mov.f32 	%f3, %f1;
 	mov.f32 	%f4, %f2;
 	cvt.rn.f32.u32 	%f5, %r12;
@@ -91,14 +91,15 @@ $Lt_0_1794:
 	mov.f32 	%f8, %f7;
 	tex.3d.v4.u32.f32 {%r13,%r14,%r15,%r16},[tex,{%f3,%f4,%f6,%f8}];
 	mov.s32 	%r17, %r13;
-	.loc	14	67	0
-	st.global.u8 	[%r11+0], %r17;
+	.loc	14	75	0
+	sub.u32 	%r18, %r17, 1;
+	st.global.u8 	[%r11+0], %r18;
 	add.s32 	%r12, %r12, 1;
 	add.s32 	%r11, %r11, 65536;
-	mov.u32 	%r18, 225;
-	setp.ne.s32 	%p1, %r12, %r18;
+	mov.u32 	%r19, 225;
+	setp.ne.s32 	%p1, %r12, %r19;
 	@%p1 bra 	$Lt_0_1794;
-	.loc	14	71	0
+	.loc	14	79	0
 	exit;
 $LDWend_helloWorld:
 	} // helloWorld
