@@ -4,7 +4,7 @@
 	// nvopencc 4.1 built on 2014-03-13
 
 	//-----------------------------------------------------------
-	// Compiling /tmp/tmpxft_00000d82_00000000-9_test.cpp3.i (/tmp/ccBI#.5EqNY2)
+	// Compiling /tmp/tmpxft_00000c4a_00000000-9_test.cpp3.i (/tmp/ccBI#.lY860F)
 	//-----------------------------------------------------------
 
 	//-----------------------------------------------------------
@@ -17,7 +17,7 @@
 	//-----------------------------------------------------------
 
 	.file	1	"<command-line>"
-	.file	2	"/tmp/tmpxft_00000d82_00000000-8_test.cudafe2.gpu"
+	.file	2	"/tmp/tmpxft_00000c4a_00000000-8_test.cudafe2.gpu"
 	.file	3	"/usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h"
 	.file	4	"/usr/local/cuda/bin/../targets/i386-linux/include/crt/device_runtime.h"
 	.file	5	"/usr/local/cuda/bin/../targets/i386-linux/include/host_defines.h"
@@ -50,58 +50,38 @@
 	.file	32	"/usr/local/cuda/bin/../targets/i386-linux/include/surface_indirect_functions.h"
 	.file	33	"/usr/local/cuda/bin/../targets/i386-linux/include/math_functions_dbl_ptx1.h"
 
-	.tex .u32 tex;
 
-	.entry helloWorld (
-		.param .u32 __cudaparm_helloWorld_data3,
-		.param .u32 __cudaparm_helloWorld_width)
+	.entry render_kernel (
+		.param .u32 __cudaparm_render_kernel_data3,
+		.param .u32 __cudaparm_render_kernel_d_invViewMatrix,
+		.param .u32 __cudaparm_render_kernel_imageW,
+		.param .u32 __cudaparm_render_kernel_imageH,
+		.param .f32 __cudaparm_render_kernel_density,
+		.param .f32 __cudaparm_render_kernel_brightness,
+		.param .f32 __cudaparm_render_kernel_transferOffset,
+		.param .f32 __cudaparm_render_kernel_transferScale)
 	{
-	.reg .u16 %rh<6>;
-	.reg .u32 %r<21>;
-	.reg .f32 %f<10>;
-	.reg .pred %p<3>;
-	.loc	14	17	0
-$LDWbegin_helloWorld:
-	mov.u16 	%rh1, %ctaid.x;
-	mov.u16 	%rh2, %ntid.x;
-	mul.wide.u16 	%r1, %rh1, %rh2;
-	mov.u16 	%rh3, %ctaid.y;
-	mov.u16 	%rh4, %ntid.y;
-	mul.wide.u16 	%r2, %rh3, %rh4;
-	cvt.u32.u16 	%r3, %tid.x;
-	ld.param.u32 	%r4, [__cudaparm_helloWorld_data3];
-	add.s32 	%r5, %r4, %r3;
-	cvt.u32.u16 	%r6, %tid.y;
-	add.u32 	%r7, %r6, %r2;
-	add.s32 	%r8, %r5, %r1;
-	add.u32 	%r9, %r1, %r3;
-	cvt.rn.f32.u32 	%f1, %r9;
-	cvt.rn.f32.u32 	%f2, %r7;
-	mul.lo.u32 	%r10, %r7, 256;
-	add.s32 	%r11, %r8, %r10;
-	mov.s32 	%r12, 0;
-$Lt_0_1794:
- //<loop> Loop body line 17, nesting depth: 1, iterations: 225
-	.loc	14	74	0
-	mov.f32 	%f3, %f1;
-	mov.f32 	%f4, %f2;
-	cvt.rn.f32.u32 	%f5, %r12;
-	mov.f32 	%f6, %f5;
-	mov.f32 	%f7, 0f00000000;     	// 0
-	mov.f32 	%f8, %f7;
-	tex.3d.v4.u32.f32 {%r13,%r14,%r15,%r16},[tex,{%f3,%f4,%f6,%f8}];
-	mov.s32 	%r17, %r13;
-	.loc	14	75	0
-	sub.u32 	%r18, %r17, 1;
-	st.global.u8 	[%r11+0], %r18;
-	add.s32 	%r12, %r12, 1;
-	add.s32 	%r11, %r11, 65536;
-	mov.u32 	%r19, 225;
-	setp.ne.s32 	%p1, %r12, %r19;
-	@%p1 bra 	$Lt_0_1794;
-	.loc	14	79	0
+	.reg .u32 %r<3>;
+	.reg .f32 %f<6>;
+	.loc	14	24	0
+$LDWbegin_render_kernel:
+	.loc	14	96	0
+	ld.param.u32 	%r1, [__cudaparm_render_kernel_data3];
+	ld.param.f32 	%f1, [__cudaparm_render_kernel_density];
+	st.global.f32 	[%r1+0], %f1;
+	.loc	14	97	0
+	ld.param.f32 	%f2, [__cudaparm_render_kernel_brightness];
+	st.global.f32 	[%r1+4], %f2;
+	.loc	14	98	0
+	ld.param.f32 	%f3, [__cudaparm_render_kernel_transferOffset];
+	st.global.f32 	[%r1+8], %f3;
+	.loc	14	99	0
+	ld.param.f32 	%f4, [__cudaparm_render_kernel_transferScale];
+	st.global.f32 	[%r1+12], %f4;
+	.loc	14	104	0
 	exit;
-$LDWend_helloWorld:
-	} // helloWorld
+$LDWend_render_kernel:
+	} // render_kernel
 	.tex .u32 texture_float_1D;
+	.tex .u32 tex;
 

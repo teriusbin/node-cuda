@@ -2,18 +2,25 @@
 #include <cstdio>
 #include <helper_math.h>
 
-
 texture<float4,  1, cudaReadModeElementType> texture_float_1D;
 texture<unsigned char, 3, cudaReadModeElementType> tex;
-
-__device__unsigned char mul(unsigned char variable)
+__device__
+unsigned char mul(unsigned char variable)
 {
- 
-    return variable - 1;
+  
+   
+    return variable + 1;
 }
 
 extern "C" {
-__global__ void helloWorld(unsigned char *data3, unsigned int width) {
+__global__ void render_kernel(float *data3, 
+								  float *d_invViewMatrix, 
+								  unsigned int imageW,
+								  unsigned int imageH,
+								  float density,
+						         float brightness,
+						         float transferOffset,
+						         float transferScale) {
 	    
 	    /*matrix mul sample*/
 	    /*
@@ -47,7 +54,6 @@ __global__ void helloWorld(unsigned char *data3, unsigned int width) {
 		}
 		*/
 		
-		
 		/*3D array sample*/
 		/*
 		int loop;
@@ -61,8 +67,9 @@ __global__ void helloWorld(unsigned char *data3, unsigned int width) {
 		}
 		*/
 		
-		/*3D volume sample*/
 		
+		/*3D volume sample*/
+		/*
 		int loop;
 		unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
 		unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -73,7 +80,23 @@ __global__ void helloWorld(unsigned char *data3, unsigned int width) {
 			unsigned char result = tex3D(tex, x, y, z);
 			data3[z*256*256 + y*256 + x]=mul(result); 
 		}
+		*/
+		
+		/*d_invViewMatrix*/
+		/*
+		for (int i=0; i<12; i++) {
+			data3[i] = d_invViewMatrix[i];
+		}
+		*/
+		
+		/*variable value*/
+		data3[0] = density;
+		data3[1] = brightness;
+		data3[2] = transferOffset;
+		data3[3] = transferScale;
 		
 		
+		
+	
 	}
 }
