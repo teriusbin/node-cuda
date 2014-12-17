@@ -1,6 +1,10 @@
 var Buffer = require('buffer').Buffer;
 var cu = require('../cuda');
 
+var fs  = require('fs');
+var sys = require('sys');
+var Png = require('/usr/local/lib/node_modules/png').Png;
+var Jpeg = require('/usr/local/lib/node_modules/jpeg').Jpeg;
 
 for (var i = 0; i < cu.deviceCount; i++) {
 	var cuDevice = new cu.Device(i);
@@ -17,40 +21,16 @@ var brightness = 1.0;
 var transferOffset = 0.0;
 var transferScale = 1.0;
 
-/*float4 OTF table*/ 
-/*
-var cuMem3 = cu.memAlloc(256*4*4);
-var buf3 = new Buffer(256*4*4);
-for (var i = 0; i < 256*4; i++) {
-	buf3.writeInt32LE(0, i*4);
-}
-var error = cuMem3.copyHtoD(buf3);
-*/
-
-/*3D float array*/ 
-/*
-var cuMem3 = cu.memAlloc(2*2*2*4);
-
-var buf3 = new Buffer(2*2*2*4);
-for (var i = 0; i < 2*2*2; i++) {
-    buf3.writeFloatLE(0, i*4);
-}
-var error = cuMem3.copyHtoD(buf3);
-*/
-
 /*3D volume array*/ 
-var d_output = cu.memAlloc(12*4);
-var d_outputBuffer = new Buffer(12*4);
-
-for (var i = 0; i < 12; i++) {
-    d_outputBuffer.writeFloatLE(0, i*4);
-}
-var error = d_output.copyHtoD(d_outputBuffer);
+var d_output = cu.memAlloc(imageWidth*imageHeight*4);
+/*
+for (var i = 0; i < imageWidth*imageHeight; i++) {
+    d_outputBuffer.writeUInt8(0, i);
+}*/
+//var error = d_output.copyHtoD(d_outputBuffer);
 
 /*view vector*/ 
-var d_invViewMatrix = cu.memAlloc(12*4);
 var c_invViewMatrix = new Buffer(12*4);
-
 c_invViewMatrix.writeFloatLE( -1.0, 0*4);
 c_invViewMatrix.writeFloatLE(  0.0, 1*4);
 c_invViewMatrix.writeFloatLE(  0.0, 2*4);
@@ -64,6 +44,7 @@ c_invViewMatrix.writeFloatLE( -1.0, 9*4);
 c_invViewMatrix.writeFloatLE(  0.0, 10*4);
 c_invViewMatrix.writeFloatLE(  0.0, 11*4);
 
+var d_invViewMatrix = cu.memAlloc(12*4);
 var error = d_invViewMatrix.copyHtoD(c_invViewMatrix);
 
 //cuModuleLoad
@@ -80,7 +61,7 @@ var cuFunction = cuModule.getFunction("render_kernel");
 
 //cuLaunchKernel
 var time = new Date().getTime();
-var error = cu.launch(cuFunction, [1, 1, 1], [1, 1, 1],
+var error = cu.launch(cuFunction, [32, 32, 1], [16, 16, 1],
 [
 	{
 		type: "DevicePtr",
@@ -112,31 +93,21 @@ var error = cu.launch(cuFunction, [1, 1, 1], [1, 1, 1],
 console.log("Launched kernel:", error);
 
 // cuMemcpyDtoH
-var error = d_output.copyDtoH(d_outputBuffer, true);
+var d_outputBuffer = new Buffer(imageWidth*imageHeight*4);
+var error = d_output.copyDtoH(d_outputBuffer, false);
 //console.log("cuda time ", (new Date().getTime() - time)/1000);
-console.log("cuda" ,d_outputBuffer);
+//console.log("cuda" ,d_outputBuffer);
+//console.log("result", d_outputBuffer.readUInt8(0));
 
-/*float 3d integer*/ 
-//console.log("float", d_outputBuffer.readFloatLE(3*4));
+var png = new Png(d_outputBuffer, 512, 512, 'rgb');
+var png_image = png.encodeSync();
 
-/*float4 OTF table*/ 
-/*
-console.log("float", d_outputBuffer.readFloatLE(0*4*4));
-*/
+fs.writeFileSync('./png.png', png_image.toString('binary'), 'binary');
 
-/*uint 3d volume*/ 
-/*
-console.log("uint", d_outputBuffer.readUInt8(108511));
-*/
+var jpeg = new Jpeg(d_outputBuffer, 512, 512, 'rgba');
+var jpeg_img = jpeg.encodeSync().toString('binary');
 
-/*float viewMatrix*/ 
-/*
-console.log("float", d_outputBuffer.readFloatLE(9*4));
-console.log('----------------------------------------');
-*/
-
-/*variable value*/ 
-console.log("uint", d_outputBuffer.readFloatLE(3*4));
+fs.writeFileSync('./jpeg.jpeg', jpeg_img, 'binary');
 
 var error = cuCtx.synchronize(function(error) {
     console.log("Context synchronize with error code: " + error);
@@ -148,3 +119,5 @@ var error = cuCtx.synchronize(function(error) {
     error = cuCtx.destroy();
  
 });
+
+

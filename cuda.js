@@ -11,7 +11,8 @@ var typeByteSize = {
   "Int32": 4,
   "Float32": 4,
   "Float64": 8,
-  "DevicePtr": 4
+  "DevicePtr": 4,
+  "DevicePtr8": 1
 };
 
 var typeAlignment = {
@@ -23,7 +24,8 @@ var typeAlignment = {
   "Int32": 4,
   "Float32": 4,
   "Float64": 8,
-  "DevicePtr": 4
+  "DevicePtr": 4,
+  "DevicePtr8": 1
 };
 
 var typeBufferFunc = {
@@ -64,7 +66,7 @@ module.exports.prepareArguments = function (args) {
 
     offset = alignUp(offset, typeAlignment[type]);
 
-    if (type == "DevicePtr") {
+    if (type == "DevicePtr" || type == "DevicePtr8") {
       args[i].value.copy(paramBuffer, offset);
     } else {
       paramBuffer["write" + typeBufferFunc[type]](args[i].value, offset);
