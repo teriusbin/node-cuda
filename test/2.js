@@ -1,16 +1,31 @@
 var Buffer = require('buffer').Buffer;
 var cu = require('../cuda');
+var mat4 = require('./mat4');
+var vec3 = require('./vec3');
 
 var fs  = require('fs');
 var sys = require('sys');
 var Png = require('/usr/local/lib/node_modules/png').Png;
 var Jpeg = require('/usr/local/lib/node_modules/jpeg').Jpeg;
 
-for (var i = 0; i < cu.deviceCount; i++) {
-	var cuDevice = new cu.Device(i);
-	console.log("Device " + i + ":", cuDevice);
-}
+//cuCtx
 var cuCtx = new cu.Ctx(0, cu.Device(0));
+
+//cuModuleLoad
+var cuModule = cu.moduleLoad("test.ptx");
+
+var filename='Bighead.den';
+var volumeSize=256*256*225;
+
+//volumeLoad & volumeTexture & TfTexture Binding
+var error = cuModule.memTextureAlloc("Bighead.den",256*256*225);
+console.log("file read", error);
+
+//cuModuleGetFunction
+var cuFunction = cuModule.getFunction("render_kernel");
+
+//excute time
+var hrstart = process.hrtime();
 
 /*global variable*/
 var maxtrixBufferSize = 12;
@@ -23,41 +38,38 @@ var transferScale = 1.0;
 
 /*3D volume array*/ 
 var d_output = cu.memAlloc(imageWidth*imageHeight*4);
-/*
-for (var i = 0; i < imageWidth*imageHeight; i++) {
-    d_outputBuffer.writeUInt8(0, i);
-}*/
-//var error = d_output.copyHtoD(d_outputBuffer);
+
+var vec;
+
+var model_matrix = mat4.create();
+
+vec = vec3.fromValues(1.0, 0.0, 0.0);
+mat4.rotate(model_matrix, model_matrix, (270.0 * 3.14159265 / 180.0), vec);
+
+vec = vec3.fromValues(0.0, 1.0, 0.0);
+mat4.rotate(model_matrix, model_matrix,(180.0 * 3.14159265 / 180.0), vec);
+
+vec = vec3.fromValues(0.0, 0.0, 3.0);
+mat4.translate(model_matrix, model_matrix,vec)
+
 
 /*view vector*/ 
 var c_invViewMatrix = new Buffer(12*4);
-c_invViewMatrix.writeFloatLE( -1.0, 0*4);
-c_invViewMatrix.writeFloatLE(  0.0, 1*4);
-c_invViewMatrix.writeFloatLE(  0.0, 2*4);
-c_invViewMatrix.writeFloatLE(  0.0, 3*4);
-c_invViewMatrix.writeFloatLE(  0.0, 4*4);
-c_invViewMatrix.writeFloatLE(  0.0, 5*4);
-c_invViewMatrix.writeFloatLE( -1.0, 6*4);
-c_invViewMatrix.writeFloatLE( -3.0, 7*4);
-c_invViewMatrix.writeFloatLE(  0.0, 8*4);
-c_invViewMatrix.writeFloatLE( -1.0, 9*4);
-c_invViewMatrix.writeFloatLE(  0.0, 10*4);
-c_invViewMatrix.writeFloatLE(  0.0, 11*4);
+c_invViewMatrix.writeFloatLE( model_matrix[0], 0*4);
+c_invViewMatrix.writeFloatLE( model_matrix[4], 1*4);
+c_invViewMatrix.writeFloatLE( model_matrix[8], 2*4);
+c_invViewMatrix.writeFloatLE( model_matrix[12], 3*4);
+c_invViewMatrix.writeFloatLE( model_matrix[1], 4*4);
+c_invViewMatrix.writeFloatLE( model_matrix[5], 5*4);
+c_invViewMatrix.writeFloatLE( model_matrix[9], 6*4);
+c_invViewMatrix.writeFloatLE( model_matrix[13], 7*4);
+c_invViewMatrix.writeFloatLE( model_matrix[2], 8*4);
+c_invViewMatrix.writeFloatLE( model_matrix[6], 9*4);
+c_invViewMatrix.writeFloatLE( model_matrix[10], 10*4);
+c_invViewMatrix.writeFloatLE( model_matrix[14], 11*4);
 
 var d_invViewMatrix = cu.memAlloc(12*4);
 var error = d_invViewMatrix.copyHtoD(c_invViewMatrix);
-
-//cuModuleLoad
-var cuModule = cu.moduleLoad("test.ptx");
-console.log("module", cuModule);
-
-var filename='Bighead.den';
-var volumeSize=256*256*225;
-var error = cuModule.memTextureAlloc("Bighead.den",256*256*225);
-console.log("file read", error);
-
-//cuModuleGetFunction
-var cuFunction = cuModule.getFunction("render_kernel");
 
 //cuLaunchKernel
 var time = new Date().getTime();
@@ -90,32 +102,28 @@ var error = cu.launch(cuFunction, [32, 32, 1], [16, 16, 1],
 	}
 ]);
 
-console.log("Launched kernel:", error);
-
 // cuMemcpyDtoH
 var d_outputBuffer = new Buffer(imageWidth*imageHeight*4);
 var error = d_output.copyDtoH(d_outputBuffer, false);
-//console.log("cuda time ", (new Date().getTime() - time)/1000);
-//console.log("cuda" ,d_outputBuffer);
-//console.log("result", d_outputBuffer.readUInt8(0));
 
-var png = new Png(d_outputBuffer, 512, 512, 'rgb');
-var png_image = png.encodeSync();
-
-fs.writeFileSync('./png.png', png_image.toString('binary'), 'binary');
+//var png = new Png(d_outputBuffer, 512, 512, 'rgba');
+//var png_image = png.encodeSync();
+//fs.writeFileSync('./png.png', png_image.toString('binary'), 'binary');
 
 var jpeg = new Jpeg(d_outputBuffer, 512, 512, 'rgba');
 var jpeg_img = jpeg.encodeSync().toString('binary');
 
+hrend = process.hrtime(hrstart);
+console.info("Execution time (hr): %ds %dms", hrend[0], hrend[1]/1000000);
+
 fs.writeFileSync('./jpeg.jpeg', jpeg_img, 'binary');
 
 var error = cuCtx.synchronize(function(error) {
-    console.log("Context synchronize with error code: " + error);
 
     var error = d_output.free();
-   // console.log("Mem Free with error code: " + error);
+
     var error = d_invViewMatrix.free();
-    //cuCtxDestroy
+    
     error = cuCtx.destroy();
  
 });

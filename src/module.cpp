@@ -20,7 +20,6 @@ void Module::Initialize(Handle<Object> target) {
 
   // Module objects can only be created by load functions
   NODE_SET_METHOD(target, "moduleLoad", Module::Load);
-  //NODE_SET_METHOD(target, "memTextureAlloc", Module::TextureAlloc);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "getFunction", Module::GetFunction);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "memTextureAlloc", Module::TextureAlloc);
 }
@@ -44,7 +43,7 @@ Handle<Value> Module::Load(const Arguments& args) {
  
   result->Set(String::New("fname"), args[0]);
   result->Set(String::New("error"), Integer::New(error));
-   //result->Set(String::New("error!!!!!!!!!!!!!!!!"), Integer::New(error4));
+   
   return scope.Close(result);
 }
 Handle<Value> Module::TextureAlloc(const Arguments& args) {
@@ -69,8 +68,6 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    size_t read = fread(h_data, 1, size, fp);
    fclose(fp);
 
-   printf("\n~~~~Read '%s', %d bytes\n", filename, read);
-    
    CUarray cu_array;
    CUDA_ARRAY3D_DESCRIPTOR desc;
    desc.Format = CU_AD_FORMAT_UNSIGNED_INT8;
@@ -79,6 +76,7 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    desc.Height = height;
    desc.Depth = depth;
    desc.Flags=0;
+   
    CUresult error3 =cuArray3DCreate(&cu_array, &desc);
    
    CUDA_MEMCPY3D copyParam;
@@ -104,19 +102,9 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    CUresult error10 =cuTexRefSetFilterMode(cu_texref, CU_TR_FILTER_MODE_LINEAR);
    CUresult error11 =cuTexRefSetFlags(cu_texref, CU_TRSF_NORMALIZED_COORDINATES);
    CUresult error12 =cuTexRefSetFormat(cu_texref, CU_AD_FORMAT_UNSIGNED_INT8, 1);
-   
-   result->Set(String::New("cuArray3DCreate error"), Integer::New(error3));
-   result->Set(String::New("cuMemcpy3D error"), Integer::New(error4));
-   result->Set(String::New("cuModuleGetTexRef error"), Integer::New(error5));
-   result->Set(String::New("cuTexRefSetArray error"), Integer::New(error6));
-   result->Set(String::New("cuTexRefSetAddressMode1 error"), Integer::New(error7));
-   result->Set(String::New("cuTexRefSetAddressMode2 error"), Integer::New(error8));
-   result->Set(String::New("cuTexRefSetFilterMode error"), Integer::New(error10));
-   result->Set(String::New("cuTexRefSetFlags error"), Integer::New(error11));
-   result->Set(String::New("cuTexRefSetFormat error"), Integer::New(error12));
+  
   
   /* Transfer Function  */
-   
     float4 *input_float_1D = (float4 *)malloc(sizeof(float4)*256);
     for(int i=0; i<=80; i++){    //alpha
 		 input_float_1D[i].x = 0.0f;
@@ -136,12 +124,9 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
 		input_float_1D[i].y =1.0f;
 		input_float_1D[i].z =1.0f;
 		input_float_1D[i].w =1.0f;
-		
-
 	}
 	
    // Create the array on the device
-     
    CUarray otf_array;
    CUDA_ARRAY_DESCRIPTOR ad;
    ad.Format = CU_AD_FORMAT_FLOAT;
@@ -153,6 +138,7 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    // Copy the host input to the array
    CUresult error14 = cuMemcpyHtoA(otf_array,0,input_float_1D,256*sizeof(float4));
    
+   // Texture Binding
    CUtexref otf_texref;
    CUresult error15 =cuModuleGetTexRef(&otf_texref, pmodule->m_module, "texture_float_1D");
    CUresult error16 =cuTexRefSetFilterMode(otf_texref, CU_TR_FILTER_MODE_LINEAR);
@@ -160,16 +146,7 @@ Handle<Value> Module::TextureAlloc(const Arguments& args) {
    CUresult error18 =cuTexRefSetFlags(otf_texref, CU_TRSF_NORMALIZED_COORDINATES);
    CUresult error19 =cuTexRefSetFormat(otf_texref, CU_AD_FORMAT_FLOAT, 4);
    CUresult error20 =cuTexRefSetArray(otf_texref, otf_array, CU_TRSA_OVERRIDE_FORMAT);
-   
-   result->Set(String::New("cuArrayCreate error"), Integer::New(error13));
-   result->Set(String::New("cuMemcpyHtoA error"), Integer::New(error14));
-   result->Set(String::New("OTF_cuModuleGetTexRef error"), Integer::New(error15));
-   result->Set(String::New("OTF_cuTexRefSetFilterMode error"), Integer::New(error16));
-   result->Set(String::New("OTF_cuTexRefSetAddressMode error"), Integer::New(error17));
-   result->Set(String::New("OTF_cuTexRefSetFlags error"), Integer::New(error18));
-   result->Set(String::New("OTF_cuTexRefSetFormat error"), Integer::New(error19));
-   result->Set(String::New("OTF_cuTexRefSetArray error"), Integer::New(error20));
-   
+  
    free(h_data);
    free(input_float_1D);
   
