@@ -43,11 +43,11 @@ var vec;
 
 var model_matrix = mat4.create();
 
-vec = vec3.fromValues(1.0, 0.0, 0.0);
+vec = vec3.fromValues(-1.0, 0.0, 0.0);
 mat4.rotate(model_matrix, model_matrix, (270.0 * 3.14159265 / 180.0), vec);
 
 vec = vec3.fromValues(0.0, 1.0, 0.0);
-mat4.rotate(model_matrix, model_matrix,(180.0 * 3.14159265 / 180.0), vec);
+mat4.rotate(model_matrix, model_matrix,(0.0 * 3.14159265 / 180.0), vec);
 
 vec = vec3.fromValues(0.0, 0.0, 3.0);
 mat4.translate(model_matrix, model_matrix,vec)
