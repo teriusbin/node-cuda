@@ -23,6 +23,7 @@ console.log("file read", error);
 
 //cuModuleGetFunction
 var cuFunction = cuModule.getFunction("render_kernel");
+var x=0.0;
 
 //excute time
 var hrstart = process.hrtime();
@@ -38,13 +39,13 @@ var transferScale = 1.0;
 
 /*3D volume array*/ 
 var d_output = cu.memAlloc(imageWidth*imageHeight*4);
+var error = d_output.memSet(imageWidth*imageHeight*4);///////////
 
 var vec;
-
 var model_matrix = mat4.create();
 
 vec = vec3.fromValues(-1.0, 0.0, 0.0);
-mat4.rotate(model_matrix, model_matrix, (270.0 * 3.14159265 / 180.0), vec);
+mat4.rotate(model_matrix, model_matrix, ((270.0) * 3.14159265 / 180.0), vec);
 
 vec = vec3.fromValues(0.0, 1.0, 0.0);
 mat4.rotate(model_matrix, model_matrix,(0.0 * 3.14159265 / 180.0), vec);
@@ -110,14 +111,6 @@ var error = d_output.copyDtoH(d_outputBuffer, false);
 //var png_image = png.encodeSync();
 //fs.writeFileSync('./png.png', png_image.toString('binary'), 'binary');
 
-var jpeg = new Jpeg(d_outputBuffer, 512, 512, 'rgba');
-var jpeg_img = jpeg.encodeSync().toString('binary');
-
-hrend = process.hrtime(hrstart);
-console.info("Execution time (hr): %ds %dms", hrend[0], hrend[1]/1000000);
-
-fs.writeFileSync('./jpeg.jpeg', jpeg_img, 'binary');
-
 var error = cuCtx.synchronize(function(error) {
 
     var error = d_output.free();
@@ -127,5 +120,11 @@ var error = cuCtx.synchronize(function(error) {
     error = cuCtx.destroy();
  
 });
+var jpeg = new Jpeg(d_outputBuffer, 512, 512, 'rgba');
+var jpeg_img = jpeg.encodeSync().toString('binary');
 
+hrend = process.hrtime(hrstart);
+console.info("Execution time (hr): %ds %dms", hrend[0], hrend[1]/1000000);
+
+fs.writeFileSync('./jpeg.jpeg', jpeg_img, 'binary');
 

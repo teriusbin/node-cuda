@@ -19,7 +19,7 @@ namespace NodeCuda {
       static Handle<Value> Free(const Arguments& args);
       static Handle<Value> CopyHtoD(const Arguments& args);
       static Handle<Value> CopyDtoH(const Arguments& args);
-     
+      static Handle<Value> mem_Set(const Arguments& args);
 
       Mem() : ObjectWrap(), m_devicePtr(0) {}
 

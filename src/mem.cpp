@@ -39,7 +39,8 @@ void Mem::Initialize(Handle<Object> target) {
   NODE_SET_METHOD(target, "memAllocPitch", Mem::AllocPitch);
  
   constructor_template->InstanceTemplate()->SetAccessor(String::New("devicePtr"), Mem::GetDevicePtr);
-
+  
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "memSet", Mem::mem_Set);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "free", Mem::Free);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "copyHtoD", Mem::CopyHtoD);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "copyDtoH", Mem::CopyDtoH);
@@ -67,6 +68,18 @@ Handle<Value> Mem::Alloc(const Arguments& args) {
 
   return scope.Close(result);
 }
+
+Handle<Value> Mem::mem_Set(const Arguments& args) {
+  HandleScope scope;
+  Mem *pmem = ObjectWrap::Unwrap<Mem>(args.This());
+ 
+  CUresult error;
+  size_t bytesize = args[0]->Uint32Value();
+  error = cuMemsetD8(pmem->m_devicePtr,0, bytesize);
+  
+  return scope.Close(Number::New(error));
+}
+
 
 Handle<Value> Mem::AllocPitch(const Arguments& args) {
   HandleScope scope;
@@ -104,7 +117,7 @@ Handle<Value> Mem::CopyHtoD(const Arguments& args) {
   size_t bytes = Buffer::Length(buf);
 
   bool async = args.Length() >= 2 && args[1]->IsTrue();
- 
+  CUresult error;
   if (async) {
     error = cuMemcpyHtoDAsync(pmem->m_devicePtr, phost, bytes, 0);
   } else {
