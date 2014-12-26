@@ -73,7 +73,7 @@ __device__ uint rgbaFloatToInt(float4 rgba)
 
 
 extern "C" {
-__global__ void render_kernel(uint *d_output, 
+__global__ void render_kernel_volume(uint *d_output, 
 								  float *d_invViewMatrix, 
 								  unsigned int imageW,
 								  unsigned int imageH,
@@ -136,7 +136,124 @@ __global__ void render_kernel(uint *d_output,
 				pos += (step*0.5);
   
 		}
+		sum.w=0.0;
+		d_output[y*imageW + x] = rgbaFloatToInt(sum);
+	}
+}
+extern "C" {
+__global__ void render_kernel_MIP(uint *d_output, 
+								  float *d_invViewMatrix, 
+								  unsigned int imageW,
+								  unsigned int imageH,
+								  float density,
+								  float brightness,
+								  float transferOffset,
+								  float transferScale) 
+{
+	
+		const int maxSteps = 500;
+		const float tstep = 0.01f;
+		const float3 boxMin = make_float3(-1.0f, -1.0f, -1.0f);
+		const float3 boxMax = make_float3(1.0f, 1.0f, 1.0f);
+	 
+		unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
+		unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
+	 
+		if ((x >= imageW) || (y >= imageH)) return;
+	 
+		float u = (x / (float) imageW)*2.0f-1.0f;
+		float v = (y / (float) imageH)*2.0f-1.0f;
+	 
+		Ray eyeRay;
+		eyeRay.o = make_float3(mul(d_invViewMatrix, make_float4(0.0f, 0.0f, 0.0f, 1.0f)));
+		eyeRay.d = normalize(make_float3(u, v, -2.0f));
+		eyeRay.d = mul(d_invViewMatrix, eyeRay.d);
+	 
+		float tnear, tfar;
+		int hit = intersectBox(eyeRay, boxMin, boxMax, &tnear, &tfar);
+	 
+		if (!hit) return;
+	 
+		if (tnear < 0.0f) tnear = 0.0f; 
+	 
+		float4 sum = make_float4(0.0f);
+		float t = tnear;
+		float3 pos = eyeRay.o + eyeRay.d * tnear;
+		float3 step = eyeRay.d*tstep;
+		float max = 0.0f; 
+		for (float i=0; i<maxSteps; i++){
+				
+				float sample = tex3D(tex, pos.x*0.5f+0.5f, pos.y*0.5f+0.5f, pos.z*0.5f+0.5f);
+				if(sample >= max) 
+					max = sample;
+					
+				t += (tstep*0.5);
+
+			   if (t > tfar) break;
+
+				pos += (step*0.5);
+			
+		}
+		sum.x = max;
+		sum.y = max;
+		sum.z = max;
+		sum.w = 0;
+		d_output[y*imageW + x] = rgbaFloatToInt(sum);
+	}
+}
+extern "C" {
+__global__ void render_kernel_MRI(uint *d_output, 
+								  float *d_invViewMatrix, 
+								  unsigned int imageW,
+								  unsigned int imageH,
+								  float density,
+								  float brightness,
+								  float transferOffset,
+								  float transferScale) 
+	{
+		const int maxSteps = 500;
+		const float tstep = 0.01f;
+		const float opacityThreshold = 0.95f;
+		const float3 boxMin = make_float3(-1.0f, -1.0f, -1.0f);
+		const float3 boxMax = make_float3(1.0f, 1.0f, 1.0f);
+
+		uint x = blockIdx.x*blockDim.x + threadIdx.x;
+		uint y = blockIdx.y*blockDim.y + threadIdx.y;
+
+		if ((x >= imageW) || (y >= imageH)) return;
+
+		float u = (x / (float) imageW)*2.0f-1.0f;
+		float v = (y / (float) imageH)*2.0f-1.0f;
+
+		// calculate eye ray in world space
+		Ray eyeRay;
+		eyeRay.o = make_float3(mul(d_invViewMatrix, make_float4(0.0f, 0.0f, 0.0f, 1.0f)));
+		eyeRay.d = normalize(make_float3(u, v, -2.0f));
+		eyeRay.d = mul(d_invViewMatrix, eyeRay.d);
+
+		// find intersection with box
+		float tnear, tfar;
+		int hit = intersectBox(eyeRay, boxMin, boxMax, &tnear, &tfar);
+
+		if (!hit) return;
+
+		if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
+
+		// march along ray from front to back, accumulating color
+		float4 sum = make_float4(0.0f);
+		float t = tnear;
+		float3 pos = eyeRay.o + eyeRay.d * tnear;
+		float3 step = eyeRay.d*tstep;
 		
+		float max = 0.0f; 
+		
+				
+		float sample = tex3D(tex, pos.x+0.5f, pos.y+0.5f+transferOffset, pos.z+0.5f);
+				
+		sum.x = sample;
+		sum.y = sample;
+		sum.z = sample;
+		sum.w = 0;
 		d_output[y*imageW + x] = rgbaFloatToInt(sum);
 	}
 }
